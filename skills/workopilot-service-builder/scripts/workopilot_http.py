@@ -4,12 +4,30 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
+import webbrowser
 from pathlib import Path
 
 # 默认使用生产环境
 # 生产环境: https://agent.workopilot.com/net-api
 # 测试环境: https://agenttest.workopilot.com/net-api
 DEFAULT_BASE_URL = "https://agent.workopilot.com/net-api"
+
+# Web 管理页面地址
+WEB_URLS = {
+    "api_key": "https://agent.workopilot.com/smart/api-key",
+    "attachment_config": "https://agent.workopilot.com/agent/platform/config",
+    "ai_service": "https://agent.workopilot.com/smart/service-mgmt",
+    "digital_employee": "https://agent.workopilot.com/ai-employee/agent-config",
+}
+
+
+def open_browser(url):
+    """尝试在浏览器中打开 URL"""
+    try:
+        webbrowser.open(url)
+        return True
+    except Exception:
+        return False
 
 
 def load_env_file(path):
@@ -62,10 +80,20 @@ def resolve_config(args):
         or file_values.get("WORKOPILOT_API_KEY")
     )
     if not api_key or api_key == "replace_with_your_api_key":
-        raise SystemExit(
-            "缺少 WORKOPILOT_API_KEY。请设置环境变量、传入 --api-key，"
-            "或在项目根目录创建 .env.workopilot。不要把真实 APIKEY 存在技能目录中。"
-        )
+        print("\n❌ 缺少 WORKOPILOT_API_KEY")
+        print("\n请先创建 API Key：")
+        print(f"   🔗 {WEB_URLS['api_key']}")
+
+        # 尝试打开浏览器
+        if open_browser(WEB_URLS['api_key']):
+            print("   ✅ 已在浏览器中打开")
+
+        print("\n创建后，请通过以下方式之一配置：")
+        print("   1. 在项目根目录创建 .env.workopilot 文件")
+        print("   2. 设置环境变量 WORKOPILOT_API_KEY")
+        print("   3. 使用 --api-key 参数传入")
+        print("\n⚠️  不要把真实 APIKEY 提交到 Git 仓库中！")
+        raise SystemExit(1)
     return base_url, api_key
 
 
@@ -107,6 +135,68 @@ def require_success(result, label):
     if isinstance(result, dict) and result.get("code") not in (None, 200):
         raise SystemExit(f"{label}失败：\n{json.dumps(result, ensure_ascii=False, indent=2)}")
     return result
+
+
+def get_models(base_url, api_key):
+    """获取租户下的所有模型"""
+    print("📋 获取可用模型列表...")
+    result = request_json(base_url, api_key, "GET", "/api/aiagent/models")
+    require_success(result, "获取模型列表")
+
+    models = result.get("data", [])
+    if not models:
+        print("⚠️  未找到可用模型")
+        return []
+
+    print(f"✅ 找到 {len(models)} 个可用模型：")
+    for model in models:
+        model_id = model.get("id")
+        model_name = model.get("modelName", "未命名")
+        model_code = model.get("modelCode", "")
+        print(f"   • ID: {model_id} | {model_name} ({model_code})")
+
+    return models
+
+
+def select_model(models, purpose="对话"):
+    """从模型列表中选择合适的模型"""
+    if not models:
+        print(f"❌ 没有可用的{purpose}模型")
+        raise SystemExit(1)
+
+    # 优先选择 GPT-4 系列
+    for model in models:
+        model_code = model.get("modelCode", "").lower()
+        if "gpt-4" in model_code or "gpt4" in model_code:
+            print(f"✅ 选择模型: {model.get('modelName')} (ID: {model.get('id')})")
+            return model.get("id")
+
+    # 其次选择 GPT-3.5
+    for model in models:
+        model_code = model.get("modelCode", "").lower()
+        if "gpt-3.5" in model_code or "gpt35" in model_code:
+            print(f"✅ 选择模型: {model.get('modelName')} (ID: {model.get('id')})")
+            return model.get("id")
+
+    # 默认选择第一个
+    first_model = models[0]
+    print(f"✅ 选择模型: {first_model.get('modelName')} (ID: {first_model.get('id')})")
+    return first_model.get("id")
+
+
+def open_management_page(page_type, message="查看"):
+    """打开管理页面"""
+    url = WEB_URLS.get(page_type)
+    if not url:
+        return
+
+    print(f"\n🌐 {message}：")
+    print(f"   {url}")
+
+    if open_browser(url):
+        print("   ✅ 已在浏览器中打开")
+    else:
+        print("   ℹ️  请手动复制链接到浏览器打开")
 
 
 if __name__ == "__main__":

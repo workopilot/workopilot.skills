@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 import argparse
-from workopilot_http import add_common_args, load_json_config, print_json, request_json, require_success, resolve_config
+from workopilot_http import (
+    add_common_args,
+    get_models,
+    load_json_config,
+    open_management_page,
+    print_json,
+    request_json,
+    require_success,
+    resolve_config,
+    select_model,
+)
 
 
 def main():
@@ -10,15 +20,66 @@ def main():
     base_url, api_key = resolve_config(args)
     payload = load_json_config(args.config)
 
+    print("\n" + "=" * 60)
+    print("创建数字员工")
+    print("=" * 60 + "\n")
+
     robot_code = payload.get("robotCode") or payload.get("RobotCode")
+    robot_name = payload.get("robotName") or payload.get("RobotName") or robot_code
+
+    # 检查是否已存在
     if robot_code and not args.no_reuse:
+        print(f"🔍 检查数字员工是否已存在: {robot_code}")
         existing = request_json(base_url, api_key, "GET", f"/api/ai/robot/profile/{robot_code}")
         if isinstance(existing, dict) and existing.get("code") == 200 and existing.get("data"):
-            print_json({"reused": True, "data": existing["data"]})
+            employee = existing["data"]
+            employee_id = employee.get("id")
+            print(f"✅ 数字员工已存在，复用 (ID: {employee_id})")
+            print(f"   名称: {employee.get('robotName')}")
+            print(f"   编码: {employee.get('robotCode')}")
+
+            # 打开管理页面
+            open_management_page("digital_employee", "查看数字员工配置")
+
+            print("\n📄 详细结果:")
+            print_json({"reused": True, "data": employee})
             return
 
+    print(f"📝 创建新的数字员工: {robot_name}")
+
+    # 获取可用模型
+    models = get_models(base_url, api_key)
+    if not models:
+        print("\n❌ 没有可用模型，无法创建数字员工")
+        print("请在喔壳平台配置模型后再试")
+        raise SystemExit(1)
+
+    # 如果配置中没有指定对话模型 ID，自动选择
+    if not payload.get("chatModelId") and not payload.get("ChatModelId"):
+        model_id = select_model(models, purpose="对话")
+        payload["chatModelId"] = model_id
+        print(f"   设置对话模型 ID: {model_id}")
+
+    # 创建数字员工
+    print(f"   ⏳ 正在创建...")
     result = request_json(base_url, api_key, "POST", "/api/ai/robot/external/create", payload)
     require_success(result, "创建数字员工")
+
+    employee_id = result.get("data", {}).get("id") if isinstance(result.get("data"), dict) else None
+    employee_robot_id = result.get("data", {}).get("robotId") if isinstance(result.get("data"), dict) else None
+
+    print(f"   ✅ 创建成功")
+    print(f"      ID: {employee_id}")
+    print(f"      RobotId: {employee_robot_id}")
+
+    print("\n" + "=" * 60)
+    print("✅ 数字员工配置完成")
+    print("=" * 60)
+
+    # 打开管理页面
+    open_management_page("digital_employee", "查看已创建的数字员工")
+
+    print("\n📄 详细结果:")
     print_json({"reused": False, "result": result})
 
 

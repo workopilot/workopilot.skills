@@ -2,7 +2,17 @@
 import argparse
 from urllib.parse import urlencode
 
-from workopilot_http import add_common_args, load_json_config, print_json, request_json, require_success, resolve_config
+from workopilot_http import (
+    add_common_args,
+    get_models,
+    load_json_config,
+    open_management_page,
+    print_json,
+    request_json,
+    require_success,
+    resolve_config,
+    select_model,
+)
 
 
 def first_present(item, *keys):
@@ -108,62 +118,117 @@ def main():
     base_url, api_key = resolve_config(args)
     payload = load_json_config(args.config)
 
+    print("\n" + "=" * 60)
+    print("创建附件分类")
+    print("=" * 60 + "\n")
+
+    # 获取可用模型
+    models = get_models(base_url, api_key)
+    if not models:
+        print("\n❌ 没有可用模型，无法创建附件分类")
+        print("请在喔壳平台配置模型后再试")
+        raise SystemExit(1)
+
+    # 选择合适的模型
+    model_id = select_model(models, purpose="附件提取")
+
     output = {"group": None, "categories": []}
     group = normalize_group(payload)
     group_id = None
 
     if group:
         group_code = first_present(group, "GroupCode", "groupCode")
+        print(f"\n📂 处理分类组: {group_code}")
         groups = get_groups(base_url, api_key)
         existing_group = find_by_code(groups, group_code, "GroupCode", "groupCode")
         if existing_group:
             group_id = first_present(existing_group, "Id", "id")
+            print(f"   ✅ 分类组已存在，复用 ID: {group_id}")
             output["group"] = {"action": "reused", "id": group_id, "data": existing_group}
         else:
+            print(f"   📝 创建新分类组...")
             save_group(base_url, api_key, group)
             groups = get_groups(base_url, api_key)
             created_group = find_by_code(groups, group_code, "GroupCode", "groupCode")
             group_id = first_present(created_group or {}, "Id", "id")
+            print(f"   ✅ 分类组创建成功，ID: {group_id}")
             output["group"] = {"action": "created", "id": group_id, "data": created_group}
 
     categories = normalize_categories(payload)
-    for category in categories:
+    print(f"\n📋 处理 {len(categories)} 个附件分类...")
+
+    for idx, category in enumerate(categories, 1):
         category.setdefault("IsActive", 1)
+
+        # 设置模型 ID
+        if not first_present(category, "ModelId", "modelId"):
+            category["ModelId"] = model_id
+            print(f"\n   [{idx}] 设置模型 ID: {model_id}")
+
         category_code = first_present(category, "CategoryCode", "categoryCode")
+        category_name = first_present(category, "CategoryName", "categoryName", "Name", "name")
+        print(f"   [{idx}] 分类: {category_name} ({category_code})")
+
         if group_id and not first_present(category, "GroupIds", "groupIds"):
             category["GroupIds"] = [group_id]
+
+        # 检查是否已存在
+        print(f"       🔍 检查分类是否已存在...")
         existing = find_by_code(
             get_categories(base_url, api_key, category_code=category_code),
             category_code,
             "CategoryCode",
             "categoryCode",
         )
-        if existing and args.no_edit_existing:
-            output["categories"].append(
-                {
-                    "action": "reused",
-                    "id": first_present(existing, "Id", "id"),
-                    "categoryCode": category_code,
-                    "data": existing,
-                }
-            )
-            continue
+
+        if existing:
+            category_id = first_present(existing, "Id", "id")
+            if args.no_edit_existing:
+                print(f"       ✅ 分类已存在，跳过更新 (ID: {category_id})")
+                output["categories"].append(
+                    {
+                        "action": "reused",
+                        "id": category_id,
+                        "categoryCode": category_code,
+                        "data": existing,
+                    }
+                )
+                continue
+            else:
+                print(f"       📝 分类已存在，更新配置 (ID: {category_id})")
+        else:
+            print(f"       📝 创建新分类...")
+
         saved = save_category(base_url, api_key, category, existing=existing, edit_existing=not args.no_edit_existing)
+
         refreshed = find_by_code(
             get_categories(base_url, api_key, category_code=category_code),
             category_code,
             "CategoryCode",
             "categoryCode",
         )
+
+        result_id = first_present(refreshed or {}, "Id", "id") or saved.get("id")
+        action_text = "更新" if saved["action"] == "updated" else "创建"
+        print(f"       ✅ {action_text}成功 (ID: {result_id})")
+
         output["categories"].append(
             {
                 "action": saved["action"],
-                "id": first_present(refreshed or {}, "Id", "id") or saved.get("id"),
+                "id": result_id,
                 "categoryCode": category_code,
                 "data": refreshed,
             }
         )
 
+    print("\n" + "=" * 60)
+    print("✅ 附件分类配置完成")
+    print("=" * 60)
+
+    # 打开管理页面
+    open_management_page("attachment_config", "查看已创建的附件分类")
+
+    print("\n📄 详细结果:")
     print_json(output)
 
 
