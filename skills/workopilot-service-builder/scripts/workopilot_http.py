@@ -158,25 +158,31 @@ def get_models(base_url, api_key):
     return models
 
 
-def select_model(models, purpose="对话"):
-    """从模型列表中选择合适的模型"""
+def select_model(models, purpose="对话", prefer_models=None):
+    """从模型列表中选择合适的模型
+
+    Args:
+        models: 模型列表
+        purpose: 用途描述
+        prefer_models: 优先的模型关键词列表，按优先级排序
+    """
     if not models:
         print(f"❌ 没有可用的{purpose}模型")
         raise SystemExit(1)
 
-    # 优先选择 GPT-4 系列
-    for model in models:
-        model_code = model.get("modelCode", "").lower()
-        if "gpt-4" in model_code or "gpt4" in model_code:
-            print(f"✅ 选择模型: {model.get('modelName')} (ID: {model.get('id')})")
-            return model.get("id")
+    # 如果没有指定优先模型，使用默认策略
+    if not prefer_models:
+        prefer_models = ["gpt-4", "gpt4", "gpt-3.5", "gpt35"]
 
-    # 其次选择 GPT-3.5
-    for model in models:
-        model_code = model.get("modelCode", "").lower()
-        if "gpt-3.5" in model_code or "gpt35" in model_code:
-            print(f"✅ 选择模型: {model.get('modelName')} (ID: {model.get('id')})")
-            return model.get("id")
+    # 按优先级查找模型
+    for preferred in prefer_models:
+        preferred_lower = preferred.lower()
+        for model in models:
+            model_code = model.get("modelCode", "").lower()
+            model_name = model.get("modelName", "").lower()
+            if preferred_lower in model_code or preferred_lower in model_name:
+                print(f"✅ 选择模型: {model.get('modelName')} (ID: {model.get('id')})")
+                return model.get("id")
 
     # 默认选择第一个
     first_model = models[0]

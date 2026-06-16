@@ -87,9 +87,13 @@ def main():
         print("请在喔壳平台配置模型后再试")
         raise SystemExit(1)
 
-    # 如果配置中没有指定模型 ID，自动选择
+    # 如果配置中没有指定模型 ID，自动选择（AI 服务优先使用 GPT）
     if not payload.get("modelId") and not payload.get("ModelId"):
-        model_id = select_model(models, purpose="AI 服务")
+        model_id = select_model(
+            models,
+            purpose="AI 服务",
+            prefer_models=["gpt-4", "gpt4", "gpt-3.5", "gpt35", "qwen", "deepseek"]
+        )
         payload["modelId"] = model_id
         print(f"   设置模型 ID: {model_id}")
 

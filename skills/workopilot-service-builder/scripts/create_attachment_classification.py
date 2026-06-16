@@ -129,8 +129,12 @@ def main():
         print("请在喔壳平台配置模型后再试")
         raise SystemExit(1)
 
-    # 选择合适的模型
-    model_id = select_model(models, purpose="附件提取")
+    # 选择合适的模型 - 附件提取优先使用 qwen 和 Deepseek
+    model_id = select_model(
+        models,
+        purpose="附件提取",
+        prefer_models=["qwen", "deepseek", "gpt-4", "gpt4", "gpt-3.5", "gpt35"]
+    )
 
     output = {"group": None, "categories": []}
     group = normalize_group(payload)

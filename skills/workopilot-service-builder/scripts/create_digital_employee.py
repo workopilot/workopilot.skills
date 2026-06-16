@@ -54,9 +54,13 @@ def main():
         print("请在喔壳平台配置模型后再试")
         raise SystemExit(1)
 
-    # 如果配置中没有指定对话模型 ID，自动选择
+    # 如果配置中没有指定对话模型 ID，自动选择（数字员工优先使用 GPT）
     if not payload.get("chatModelId") and not payload.get("ChatModelId"):
-        model_id = select_model(models, purpose="对话")
+        model_id = select_model(
+            models,
+            purpose="对话",
+            prefer_models=["gpt-4", "gpt4", "gpt-3.5", "gpt35", "qwen", "deepseek"]
+        )
         payload["chatModelId"] = model_id
         print(f"   设置对话模型 ID: {model_id}")
 
