@@ -354,7 +354,7 @@
 
 ```bash
 # 查询系统中是否已有"采购合同"分类
-curl -X GET "${BASE_URL}/api/Classfication/GetCategoryDataAsync" \
+curl -X GET "${BASE_URL}/api/Classfication/GetCategoryData" \
   -H "API-KEY: ${API_KEY}"
 
 # 检查返回的 data 数组中是否有 code: "contract-purchase"
@@ -434,7 +434,7 @@ async function handleContractUpload(file) {
 async function pollExtractResult(batchNo, maxAttempts = 30) {
   for (let i = 0; i < maxAttempts; i++) {
     const response = await fetch(
-      `${WORKOPILOT_BASE_URL}/api/Classfication/GetClassificationResultAsync?batchNo=${batchNo}`,
+      `${WORKOPILOT_BASE_URL}/api/Classfication/GetClassificationResult?batchNo=${batchNo}`,
       {
         headers: { 'API-KEY': WORKOPILOT_API_KEY }
       }

@@ -20,7 +20,7 @@
 | 不知道附件属于合同、订单还是签到表 | `POST /api/Classfication/ClassifyFile` |
 | 分类后同时提取结构化字段 | `ClassifyFile` 请求中传 `extractFields: true` |
 | 已经知道附件类型，只要取结构化字段 | `POST /api/Classfication/ExtractFile` |
-| 获取当前可用分类 | `GET /api/Classfication/GetCategoryDataAsync` |
+| 获取当前可用分类 | `GET /api/Classfication/GetCategoryData` |
 | 当前租户缺少分类/取数字段配置 | `POST /api/ClassifyExtend/SaveAttachmentGroup` + `POST /api/ClassifyExtend/AddAttachmentCategory` |
 
 ## 创建分类和取数配置
@@ -204,7 +204,7 @@ API-KEY: <your_api_key>
 在分类或提取前，先查询当前租户有哪些分类：
 
 ```http
-GET /api/Classfication/GetCategoryDataAsync
+GET /api/Classfication/GetCategoryData
 API-KEY: <your_api_key>
 ```
 
@@ -248,12 +248,12 @@ JSON 请求体：
 }
 ```
 
-Agent 使用：保存 `data`，轮询 `/api/Classfication/GetClassificationResultAsync?batchNo=...`。
+Agent 使用：保存 `data`，轮询 `/api/Classfication/GetClassificationResult?batchNo=...`。
 
 ## 查询分类结果
 
 ```http
-GET /api/Classfication/GetClassificationResultAsync?batchNo=batch_no_xxx
+GET /api/Classfication/GetClassificationResult?batchNo=batch_no_xxx
 API-KEY: <your_api_key>
 ```
 
@@ -318,7 +318,7 @@ Agent 使用：
 ## 查询分类数据
 
 ```http
-GET /api/Classfication/GetCategoryDataAsync
+GET /api/Classfication/GetCategoryData
 API-KEY: <your_api_key>
 ```
 
