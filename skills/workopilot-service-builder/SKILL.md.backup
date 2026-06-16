@@ -1,0 +1,91 @@
+---
+name: workopilot-service-builder
+description: 创建和集成喔壳（workopilot）服务的开发者技能。适用于用户需要创建喔壳 AI 服务、创建数字员工、注册 iframe 技能卡片、通过 API-KEY 调用喔壳开放接口、把数字员工嵌入第三方系统、编写开发者接入文档、生成 curl/PowerShell/前端示例，或排查喔壳服务集成问题的场景。
+---
+
+# 喔壳服务创建与集成助手
+
+## 概览
+
+使用本技能帮助开发者端到端创建和集成喔壳（workopilot）服务：配置 AI 服务、创建数字员工、注册 iframe 技能卡片，并把这些能力通过 iframe 或开放 API 集成到第三方系统。
+
+优先输出一套连贯的接入方案，不要只给零散接口片段。处理时区分两类任务：
+
+- 配置类任务：优先调用本技能自带的 Python 脚本。
+- 集成类任务：阅读 references 中的相关文档，输出开发者可执行的步骤、示例和检查清单。
+
+## 工作流
+
+1. 先明确用户目标：创建 AI 服务、创建数字员工、注册 iframe 卡片、创建附件分类/取数配置、嵌入 iframe、调用开放聊天 API，或组合完成。
+2. 先阅读 `references/auth-and-config.md`，确认 APIKEY 和 baseUrl。
+3. 创建 AI 服务前，先根据用户业务设计 `inputs`，并在 `systemPrompt` 中用 `{{input_name}}` 引用每个输入；不要只创建没有业务提示词的空壳服务。
+4. 遇到配置类任务时，优先使用脚本：
+   - `scripts/create_ai_service.py`
+   - `scripts/create_digital_employee.py`
+   - `scripts/create_attachment_classification.py`
+   - `scripts/register_iframe_card.py`
+   - `scripts/smoke_test.py`
+5. 遇到集成类任务时，只读取相关 reference：
+   - AI 服务创建/执行：`references/ai-service.md`
+   - 数字员工创建/查询/聊天：`references/digital-employee.md`
+   - iframe 嵌入和 postMessage：`references/iframe-embed.md`
+   - iframe 技能卡片注册、绑定、触发、runtimeToken 和业务上下文：`references/iframe-skill-card.md`
+   - Document 文档服务：`references/document-service.md`
+   - 附件分类和提取：`references/attachment-classification.md`
+6. 收尾时给出简短联调检查清单：环境变量、APIKEY 是否已配置、已创建的 ID/编码、smoke test 结果，以及下一步 iframe/API 接入动作。
+
+## 配置规则
+
+`baseUrl` 和 `apiKey` 按以下优先级读取：
+
+1. 命令行参数：`--base-url`、`--api-key`
+2. 环境变量：`WORKOPILOT_BASE_URL`、`WORKOPILOT_API_KEY`
+3. 项目根目录的 `.env.workopilot` 或 `.env.local`
+4. `baseUrl` 的内置默认值：`https://agent.workopilot.com/net-api`
+
+不要把真实 APIKEY 写入本技能目录、reference 文档、示例文件或提交记录。如果项目中存在包含真实密钥的 `.env.workopilot`，需要确认 `.gitignore` 已忽略它。
+
+如果本机没有 Python，不要自动安装。先根据相关 reference 生成等价 curl 或 PowerShell 命令；只有用户明确授权后，才协助安装运行时。
+
+## 脚本用法
+
+尽量在开发者项目根目录运行脚本，这样脚本可以自动发现 `.env.workopilot`：
+
+```bash
+python path/to/scripts/smoke_test.py
+python path/to/scripts/create_ai_service.py --config ai-service.json
+python path/to/scripts/create_attachment_classification.py --config attachment-classification.json
+python path/to/scripts/register_iframe_card.py --config iframe-card.json
+python path/to/scripts/create_digital_employee.py --config digital-employee.json
+```
+
+每个脚本都支持：
+
+```bash
+--base-url https://agent.workopilot.com/net-api
+--api-key <APIKEY>
+--env-file .env.workopilot
+```
+
+配置 JSON 直接使用接口字段名。脚本只在开放查询接口存在时做轻量幂等：
+
+- `create_ai_service.py` 创建前按 `serviceCode` 查询，存在则复用。
+- `create_digital_employee.py` 创建前按 `robotCode` 查询，存在则复用。
+- `create_attachment_classification.py` 创建前按 `GroupCode`、`CategoryCode` 查询；分类存在时默认编辑并覆盖 `ExtractRules`，传 `--no-edit-existing` 可只复用不覆盖。
+- `register_iframe_card.py` 直接创建，因为当前开放接口只提供注册能力。
+
+## 输出要求
+
+帮助开发者时，至少说明：
+
+- APIKEY 配置方式；开放接口请求头需要加入 `API-KEY`
+- 精确接口路径；尤其注意 Document 路由
+- 已创建或需要保存的标识：`serviceCode`、`robotId`、`robotCode`、`skillRegistryId`
+- 附件分类场景要区分“先分类后处理”和“已知分类直接提取”；缺少分类时引导创建分组、分类和 `ExtractRules`
+- AI 服务的 `inputs` 设计、`systemPrompt` 占位符和 `/api/aiagent/run` 示例入参
+- Iframe 技能卡片的使用场景、触发条件、`showCard` 参数、runtimeToken 获取方式、当前业务 ID/业务数据来源、当前登录者信息接口
+- 如果 iframe 卡片先使用本地 URL 测试，必须提醒发布后更新为正式 URL
+- 最小验证命令或 smoke test
+- 安全提示：APIKEY 应放在本地环境变量或服务端密钥配置中，不要放进前端代码
+
+维护或生成接口说明时，响应示例优先使用 `jsonc` 代码块添加字段注释，并明确标注“带注释，不可直接作为 JSON 发送”。每个接口都应说明 Agent 需要读取哪个返回字段，以及该字段用于下一步哪个调用。

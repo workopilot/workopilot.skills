@@ -1,0 +1,82 @@
+[
+  {
+    "query": "帮我在喔壳平台上创建一个客服AI助手，需要能回答常见问题",
+    "should_trigger": true
+  },
+  {
+    "query": "我想把我们公司的智能客服接入到官网上，用的是喔壳的数字员工，怎么弄？",
+    "should_trigger": true
+  },
+  {
+    "query": "需要调用 workopilot 的开放接口来创建一个 AI 服务，baseUrl 是 https://agent.workopilot.com/net-api，有示例代码吗",
+    "should_trigger": true
+  },
+  {
+    "query": "我要给我们的 CRM 系统添加一个 iframe 卡片，点击的时候能调用喔壳的 AI 能力分析客户资料",
+    "should_trigger": true
+  },
+  {
+    "query": "workopilot 平台怎么配置 apikey？还有创建数字员工的接口文档在哪",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我写个 Python 脚本，调用喔壳的附件分类 API 来自动处理上传的文档",
+    "should_trigger": true
+  },
+  {
+    "query": "我想在网页里嵌入喔壳的聊天窗口，需要什么参数和配置",
+    "should_trigger": true
+  },
+  {
+    "query": "能帮我生成一个 curl 命令来测试 workopilot 的 AI 服务执行接口吗？我有 api-key",
+    "should_trigger": true
+  },
+  {
+    "query": "我们公司要做个智能文档分类系统，用喔壳的能力，需要先创建分类组和提取规则对吗",
+    "should_trigger": true
+  },
+  {
+    "query": "怎么注册一个 iframe 技能卡片到数字员工？需要提供 skillRegistryId 这些参数",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我写一个 React 组件，实现用户登录功能",
+    "should_trigger": false
+  },
+  {
+    "query": "我的 PostgreSQL 数据库连接超时了，怎么排查",
+    "should_trigger": false
+  },
+  {
+    "query": "能帮我优化这段 Python 代码的性能吗？主要是循环部分太慢了",
+    "should_trigger": false
+  },
+  {
+    "query": "需要设计一个微服务架构，包含用户服务、订单服务和支付服务",
+    "should_trigger": false
+  },
+  {
+    "query": "我想学习 TypeScript，有什么好的教程推荐",
+    "should_trigger": false
+  },
+  {
+    "query": "Docker 容器启动失败，报错 port already in use，怎么解决",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我配置 nginx 反向代理，后端是 Node.js 服务",
+    "should_trigger": false
+  },
+  {
+    "query": "我要做个电商网站，用 Vue3 + Element Plus，帮我搭建项目结构",
+    "should_trigger": false
+  },
+  {
+    "query": "Git 提交代码时出现 merge conflict，怎么处理",
+    "should_trigger": false
+  },
+  {
+    "query": "需要实现一个 WebSocket 实时通讯功能，前端用 React，后端用 Spring Boot",
+    "should_trigger": false
+  }
+]
