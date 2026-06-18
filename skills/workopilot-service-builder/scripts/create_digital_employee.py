@@ -64,17 +64,52 @@ def main():
         payload["chatModelId"] = model_id
         print(f"   设置对话模型 ID: {model_id}")
 
+    # 处理 iframe 嵌入配置
+    enable_embed = payload.get("enableEmbed", 0)
+    if enable_embed == 1:
+        print("   ℹ️  已配置 iframe 嵌入功能")
+
+        # 检查是否有 embedBaseUrl
+        embed_base_url = payload.get("embedBaseUrl")
+        if embed_base_url:
+            print(f"      嵌入基础 URL: {embed_base_url}")
+
+        # 检查允许的来源域名
+        embed_allowed_origins = payload.get("embedAllowedOrigins", [])
+        if embed_allowed_origins:
+            print(f"      允许的来源域名: {', '.join(embed_allowed_origins)}")
+
+        # 检查其他嵌入配置
+        if payload.get("embedHideHeader"):
+            print("      隐藏头部: 是")
+        if payload.get("embedHideBranding"):
+            print("      隐藏品牌标识: 是")
+        if payload.get("embedMaxDailyCalls"):
+            print(f"      每日最大调用次数: {payload.get('embedMaxDailyCalls')}")
+
     # 创建数字员工
     print(f"   ⏳ 正在创建...")
     result = request_json(base_url, api_key, "POST", "/api/ai/robot/external/create", payload)
     require_success(result, "创建数字员工")
 
-    employee_id = result.get("data", {}).get("id") if isinstance(result.get("data"), dict) else None
-    employee_robot_id = result.get("data", {}).get("robotId") if isinstance(result.get("data"), dict) else None
+    data = result.get("data", {}) if isinstance(result.get("data"), dict) else {}
+    employee_id = data.get("id")
+    employee_robot_id = data.get("robotId")
+    robot_code_final = data.get("robotCode")
 
     print(f"   ✅ 创建成功")
     print(f"      ID: {employee_id}")
     print(f"      RobotId: {employee_robot_id}")
+    print(f"      RobotCode: {robot_code_final}")
+
+    # 显示 iframe 嵌入信息
+    if enable_embed == 1 and data.get("embedUrl"):
+        print(f"\n   🔗 iframe 嵌入信息:")
+        print(f"      嵌入 URL: {data.get('embedUrl')}")
+        print(f"      API Key ID: {data.get('embedApiKeyId')}")
+        if data.get("iframeCode"):
+            print(f"\n   📋 iframe 代码:")
+            print(f"      {data.get('iframeCode')}")
 
     print("\n" + "=" * 60)
     print("✅ 数字员工配置完成")

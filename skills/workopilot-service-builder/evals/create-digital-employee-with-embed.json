@@ -1,0 +1,45 @@
+{
+  "robotName": "合同审核专家",
+  "robotCode": "contract_review_expert",
+  "businessLine": "legal",
+  "description": "专业的合同审核助手，帮助识别合同风险点并提供修改建议",
+  "systemPrompt": "你是一名经验丰富的合同审核专家。你需要仔细分析用户提供的合同内容，从法律风险、条款完整性、权责平衡等角度给出专业的审查意见。对于发现的问题，要提供具体的修改建议。",
+  "welcomeMessage": "你好！我是合同审核专家，我可以帮你审核各类合同，识别其中的风险点并提供专业建议。请上传或粘贴需要审核的合同内容。",
+  "quickQuestions": [
+    {
+      "text": "帮我检查违约条款是否合理",
+      "sort": 1
+    },
+    {
+      "text": "帮我分析付款条件和风险",
+      "sort": 2
+    },
+    {
+      "text": "这份合同有哪些需要注意的地方",
+      "sort": 3
+    }
+  ],
+  "forbiddenWords": "涉密\n违法\n非法",
+  "enableHistory": 1,
+  "maxHistory": 10,
+  "enableSuggestedReplies": 0,
+  "enableToolCallDisplay": 1,
+  "enableAgentCollaboration": 0,
+  "collaborationScope": null,
+  "memoryMode": "MEDIUM",
+  "enableCompaction": 1,
+  "compactionModelId": null,
+  "enableEmbed": 1,
+  "embedBaseUrl": "https://agent.workopilot.com",
+  "embedAllowedOrigins": [
+    "https://crm.example.com",
+    "https://erp.example.com"
+  ],
+  "embedExpireAt": null,
+  "embedMaxDailyCalls": null,
+  "embedThemeConfig": null,
+  "embedHideHeader": 0,
+  "embedHideBranding": 0,
+  "skills": [],
+  "mcpTools": []
+}

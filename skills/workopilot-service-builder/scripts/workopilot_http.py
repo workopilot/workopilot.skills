@@ -139,23 +139,31 @@ def require_success(result, label):
 
 def get_models(base_url, api_key):
     """获取租户下的所有模型"""
-    print("📋 获取可用模型列表...")
-    result = request_json(base_url, api_key, "GET", "/api/aiagent/models")
+    print("获取可用模型列表...")
+    result = request_json(base_url, api_key, "GET", "/api/aiagent/external/models")
     require_success(result, "获取模型列表")
 
-    models = result.get("data", [])
+    models = result.get("rows") or result.get("data") or []
     if not models:
-        print("⚠️  未找到可用模型")
+        print("未找到可用模型")
         return []
 
-    print(f"✅ 找到 {len(models)} 个可用模型：")
+    print(f"找到 {len(models)} 个可用模型：")
     for model in models:
-        model_id = model.get("id")
-        model_name = model.get("modelName", "未命名")
-        model_code = model.get("modelCode", "")
-        print(f"   • ID: {model_id} | {model_name} ({model_code})")
+        model_id = first_model_value(model, "aiModelId", "AiModelId", "modelId", "ModelId", "id", "Id")
+        model_name = first_model_value(model, "modelName", "ModelName") or "未命名"
+        model_code = first_model_value(model, "modelCode", "ModelCode") or ""
+        print(f"   - ID: {model_id} | {model_name} ({model_code})")
 
     return models
+
+
+def first_model_value(model, *keys):
+    for key in keys:
+        value = model.get(key)
+        if value not in (None, ""):
+            return value
+    return None
 
 
 def select_model(models, purpose="对话", prefer_models=None):
@@ -178,16 +186,25 @@ def select_model(models, purpose="对话", prefer_models=None):
     for preferred in prefer_models:
         preferred_lower = preferred.lower()
         for model in models:
-            model_code = model.get("modelCode", "").lower()
-            model_name = model.get("modelName", "").lower()
+            model_type = str(first_model_value(model, "modelType", "ModelType") or "").lower()
+            if model_type and model_type not in ("chat", "vision", "vl", "llm"):
+                continue
+            model_code = str(first_model_value(model, "modelCode", "ModelCode") or "").lower()
+            model_name = str(first_model_value(model, "modelName", "ModelName") or "").lower()
             if preferred_lower in model_code or preferred_lower in model_name:
-                print(f"✅ 选择模型: {model.get('modelName')} (ID: {model.get('id')})")
-                return model.get("id")
+                model_id = first_model_value(model, "aiModelId", "AiModelId", "modelId", "ModelId", "id", "Id")
+                print(f"选择模型: {first_model_value(model, 'modelName', 'ModelName')} (ID: {model_id})")
+                return model_id
 
     # 默认选择第一个
-    first_model = models[0]
-    print(f"✅ 选择模型: {first_model.get('modelName')} (ID: {first_model.get('id')})")
-    return first_model.get("id")
+    chat_models = [
+        model for model in models
+        if str(first_model_value(model, "modelType", "ModelType") or "").lower() in ("chat", "vision", "vl", "llm")
+    ]
+    first_model = chat_models[0] if chat_models else models[0]
+    model_id = first_model_value(first_model, "aiModelId", "AiModelId", "modelId", "ModelId", "id", "Id")
+    print(f"选择模型: {first_model_value(first_model, 'modelName', 'ModelName')} (ID: {model_id})")
+    return model_id
 
 
 def open_management_page(page_type, message="查看"):

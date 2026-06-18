@@ -122,6 +122,7 @@ compatibility:
 - 系统提示词: 行为定制
 
 **创建流程:** `scripts/create_digital_employee.py`
+**更新流程:** `scripts/update_digital_employee.py`
 
 ### 3. 附件分类与提取 - 文档智能化核心能力 ⭐⭐⭐
 
@@ -248,6 +249,7 @@ fillForm(result.data);
 
 - 创建 AI 服务 → `scripts/create_ai_service.py`
 - 创建数字员工 → `scripts/create_digital_employee.py`  
+- 更新数字员工 → `scripts/update_digital_employee.py`
 - 注册 iframe 卡片 → `scripts/register_iframe_card.py`
 - 创建附件分类 → `scripts/create_attachment_classification.py` ⭐
 
