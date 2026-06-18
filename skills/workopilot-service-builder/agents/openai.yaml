@@ -1,4 +1,0 @@
-interface:
-  display_name: "喔壳服务创建与集成助手"
-  short_description: "创建并集成喔壳服务。"
-  default_prompt: "帮我创建一个喔壳 AI 服务和数字员工，并生成第三方系统接入步骤。"
