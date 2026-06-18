@@ -333,19 +333,21 @@ python scripts/update_digital_employee.py \
 
 ## 总结
 
-本次优化严格遵循接口文档，补充了之前缺失的 iframe 嵌入参数支持，并新增了更新数字员工的完整功能。所有改进都是向后兼容的，不影响现有使用。
+本次优化严格遵循接口文档，补充了之前缺失的 iframe 嵌入参数支持，新增了更新数字员工的完整功能，并添加了计费模块的完整开发指南。所有改进都是向后兼容的，不影响现有使用。
 
 ### 关键成果
 
-✅ **功能完整性** - 覆盖创建和更新的所有参数
+✅ **功能完整性** - 覆盖创建、更新、计费的所有场景
 ✅ **文档完善性** - 提供多层次的使用文档
 ✅ **易用性** - 友好的提示和错误处理
 ✅ **可维护性** - 清晰的代码结构和注释
 ✅ **向后兼容** - 不破坏现有功能
+✅ **安全提醒** - 计费模块的安全使用指导
 
 ### 符合规范
 
 ✅ 严格遵循 `docs/喔壳技能/接口文档/02-数字员工开放接口.md`
+✅ 严格遵循 `http://docs.workopilot.com/api/billing.html`
 ✅ 遵循 `SKILL.md` 中定义的技能开发规范
 ✅ 符合项目 `CLAUDE.md` 的代码质量标准
 
@@ -361,10 +363,11 @@ python scripts/update_digital_employee.py \
 
 3. **文档**
    - `scripts/README.md` (新增)
-   - `CHANGELOG.md` (新增)
+   - `CHANGELOG.md` (新增，持续更新)
    - `QUICKSTART.md` (新增)
-   - `OPTIMIZATION_SUMMARY.md` (新增)
+   - `OPTIMIZATION_SUMMARY.md` (新增，持续更新)
    - `SKILL.md` (更新)
+   - `references/billing.md` (新增) ⭐
 
 ### 开始使用
 
@@ -380,6 +383,28 @@ python scripts/create_digital_employee.py \
 python scripts/update_digital_employee.py \
   --employee-id 1001 \
   --config evals/update-digital-employee.json
+
+# 4. 集成计费模块（阅读文档）
+# 查看 references/billing.md 了解如何集成
 ```
 
 完整文档请查看 `QUICKSTART.md`。
+
+## 2026-06-18 新增内容 ⭐
+
+### 计费模块开发指南
+
+新增了完整的计费模块集成文档，帮助开发者在自定义数字员工中实现额度控制。
+
+**核心价值：**
+- 🎯 控制高价值服务的使用成本
+- 🎯 灵活的扣费时机和额度策略
+- 🎯 完善的额度检查和消耗机制
+- 🎯 多种集成方案和代码示例
+
+**关键提醒：**
+- ⚠️ 高价值操作必须集成计费
+- ⚠️ 未集成计费可能导致成本失控
+- ⚠️ 不要在前端暴露 API-KEY
+
+**详细文档：** `references/billing.md`

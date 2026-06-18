@@ -348,6 +348,10 @@ python scripts/update_digital_employee.py --employee-id 1001 --config update-emp
 4. **配置附件提取** - 让数字员工能处理文档
    - 参考：`references/attachment-classification.md`
 
+5. **集成计费模块** ⚠️ - 控制高价值服务的使用额度
+   - 参考：`references/billing.md`
+   - **重要提醒**: 如果你的数字员工提供生成文档、创建订单、数据导出、复杂分析等高价值服务，强烈建议集成计费模块，否则可能导致成本失控。
+
 ## 获取帮助
 
 - 完整文档：`SKILL.md`
