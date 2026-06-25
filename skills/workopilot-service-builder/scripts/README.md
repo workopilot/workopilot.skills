@@ -173,6 +173,56 @@ python scripts/update_digital_employee.py \
 }
 ```
 
+### configure_app_menu.py - 配置数字员工应用菜单
+
+为数字员工新增或更新旁边的固定业务菜单，例如“报价单历史”“客户资料”“订单列表”。这是**配置阶段脚本**，主要由 Agent 在创建/调整数字员工时调用；开发者运行时对接应阅读 `references/app-menu-iframe.md`，处理 iframe 页面和 runtimeToken 单点登录。
+
+**支持的配置参数：**
+
+- `title` (创建必填，更新可选) - 菜单显示名称
+- `menuKey` (建议填写) - 菜单编码，建议英文、数字、下划线、短横线，例如 `quote-history`
+- `iframeUrl` (创建必填，更新可选) - 业务页面地址；测试可用 `http://localhost:5173/...`，发布后必须更新为正式 HTTPS 地址
+- `icon` (可选) - Iconify/Lucide 图标名，推荐 `lucide:history`；也可简写 `history`
+- `sort` (可选) - 排序值
+- `isEnabled` (可选) - 是否启用
+
+**配置文件示例：**
+
+```json
+{
+  "title": "报价单历史",
+  "menuKey": "quote-history",
+  "iframeUrl": "http://localhost:5173/quote-history?appCode=quotation&robotId=1001&menuKey=quote-history",
+  "icon": "lucide:history",
+  "sort": 10,
+  "isEnabled": true
+}
+```
+
+**使用示例：**
+
+```bash
+# 给数字员工新增应用菜单
+python scripts/configure_app_menu.py \
+  --employee-id 1001 \
+  --action create \
+  --config app-menu.json
+
+# 发布后把本地地址更新为正式地址
+python scripts/configure_app_menu.py \
+  --employee-id 1001 \
+  --action update \
+  --menu-key quote-history \
+  --config app-menu-prod.json
+```
+
+Agent 引导要点：
+
+- 先确认数字员工已存在，并记录 `employeeId` / `robotId`。
+- 如果只是配置菜单，不要让开发者手写后台 `RobotAppConfigDto`。
+- 创建时可先使用本地 `iframeUrl` 测试，但必须提醒发布后执行 update 更新为正式 URL。
+- 图标库使用 Iconify/Lucide，常用示例：`lucide:history`、`lucide:file-clock`、`lucide:table-2`、`lucide:clipboard-list`、`lucide:users`、`lucide:database`。
+
 ### create_ai_service.py - 创建 AI 服务
 
 创建一个 AI 服务，封装可复用的 AI 能力。
@@ -230,6 +280,7 @@ python scripts/smoke_test.py
 
 - `create_digital_employee.py` - 按 `robotCode` 查询，存在则复用（除非使用 `--no-reuse`）
 - `create_ai_service.py` - 按 `serviceCode` 查询，存在则复用
+- `configure_app_menu.py` - create 遇到相同 `menuKey` 会提示改用 update；update 按 `employeeId + menuKey` 定位
 - `create_attachment_classification.py` - 按 `GroupCode`+`CategoryCode` 查询，存在时默认编辑覆盖
 
 ## 故障排查
